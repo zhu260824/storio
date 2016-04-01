@@ -13,7 +13,7 @@ import rx.Subscriber;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -21,6 +21,7 @@ import static org.mockito.Mockito.when;
 @PrepareForTest(Subscriber.class)
 public class OnSubscribeExecuteAsBlockingTest {
 
+    @SuppressWarnings("CheckResult")
     @Test
     public void shouldExecuteAsBlockingAfterSubscription() {
         //noinspection unchecked
@@ -36,8 +37,9 @@ public class OnSubscribeExecuteAsBlockingTest {
                 .toBlocking()
                 .first();
 
-        verify(preparedOperation, times(1)).executeAsBlocking();
-        verify(preparedOperation, times(0)).asRxObservable();
+        verify(preparedOperation).executeAsBlocking();
+        verify(preparedOperation, never()).asRxObservable();
+        verify(preparedOperation, never()).asRxSingle();
 
         assertThat(actualResult).isEqualTo(expectedResult);
     }
