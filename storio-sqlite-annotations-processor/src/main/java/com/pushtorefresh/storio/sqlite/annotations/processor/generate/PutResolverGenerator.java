@@ -104,11 +104,20 @@ public class PutResolverGenerator implements Generator<StorIOSQLiteTypeMeta> {
                 .addCode("\n");
 
         for (StorIOSQLiteColumnMeta columnMeta : storIOSQLiteTypeMeta.columns.values()) {
+            final boolean primitive = columnMeta.element.asType().getKind().isPrimitive();
+            final boolean needIgnoreNull = columnMeta.storIOColumn.ignoreNull();
+            final boolean ignoreNull = !primitive && needIgnoreNull;    // do not check primitive
+            if (ignoreNull) {
+                builder.beginControlFlow("if($L != null)", "object." + columnMeta.fieldName);
+            }
             builder.addStatement(
                     "contentValues.put($S, $L)",
                     columnMeta.storIOColumn.name(),
                     "object." + columnMeta.fieldName
             );
+            if (ignoreNull) {
+                builder.endControlFlow();
+            }
         }
 
         return builder
