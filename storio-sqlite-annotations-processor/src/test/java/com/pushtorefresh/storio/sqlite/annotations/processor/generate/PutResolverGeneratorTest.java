@@ -1,6 +1,5 @@
 package com.pushtorefresh.storio.sqlite.annotations.processor.generate;
 
-import com.pushtorefresh.storio.sqlite.annotations.StorIOSQLiteColumn;
 import com.pushtorefresh.storio.sqlite.annotations.StorIOSQLiteType;
 import com.pushtorefresh.storio.sqlite.annotations.processor.introspection.StorIOSQLiteColumnMeta;
 import com.pushtorefresh.storio.sqlite.annotations.processor.introspection.StorIOSQLiteTypeMeta;
@@ -11,10 +10,8 @@ import org.junit.Test;
 
 import java.io.IOException;
 
-import javax.lang.model.element.Element;
-import javax.lang.model.type.TypeKind;
-import javax.lang.model.type.TypeMirror;
-
+import static com.pushtorefresh.storio.sqlite.annotations.processor.generate.TestFactory.createColumnMetaMock;
+import static com.pushtorefresh.storio.sqlite.annotations.processor.generate.TestFactory.createElementMock;
 import static javax.lang.model.type.TypeKind.INT;
 import static javax.lang.model.type.TypeKind.NONE;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -102,7 +99,8 @@ public class PutResolverGeneratorTest {
                 "column1",
                 "column1Field",
                 true,           // key
-                false);
+                false,
+                null);
         storIOSQLiteTypeMeta.columns.put("column1", storIOSQLiteColumnMeta1);
 
         final StorIOSQLiteColumnMeta storIOSQLiteColumnMeta2 = createColumnMetaMock(
@@ -110,7 +108,8 @@ public class PutResolverGeneratorTest {
                 "column2",
                 "column2Field",
                 false,
-                false);
+                false,
+                null);
         storIOSQLiteTypeMeta.columns.put("column2", storIOSQLiteColumnMeta2);
 
         final PutResolverGenerator putResolverGenerator = new PutResolverGenerator();
@@ -140,7 +139,8 @@ public class PutResolverGeneratorTest {
                 "column1",
                 "column1Field",
                 true,
-                false);
+                false,
+                null);
         storIOSQLiteTypeMeta.columns.put("column1", storIOSQLiteColumnMeta1);
 
         final StorIOSQLiteColumnMeta storIOSQLiteColumnMeta2 = createColumnMetaMock(
@@ -148,7 +148,8 @@ public class PutResolverGeneratorTest {
                 "column2",
                 "column2Field",
                 false,
-                true);                      // ignore nulls
+                true,
+                null);                      // ignore nulls
         storIOSQLiteTypeMeta.columns.put("column2", storIOSQLiteColumnMeta2);
 
         final PutResolverGenerator putResolverGenerator = new PutResolverGenerator();
@@ -192,7 +193,8 @@ public class PutResolverGeneratorTest {
                 "column1",
                 "column1Field",
                 true,
-                false);
+                false,
+                null);
         storIOSQLiteTypeMeta.columns.put("column1", storIOSQLiteColumnMeta1);
 
         final StorIOSQLiteColumnMeta storIOSQLiteColumnMeta2 = createColumnMetaMock(
@@ -200,7 +202,8 @@ public class PutResolverGeneratorTest {
                 "column2",
                 "column2Field",
                 false,
-                true);                  // ignore nulls
+                true,
+                null);                  // ignore nulls
         storIOSQLiteTypeMeta.columns.put("column2", storIOSQLiteColumnMeta2);
 
         final PutResolverGenerator putResolverGenerator = new PutResolverGenerator();
@@ -215,38 +218,6 @@ public class PutResolverGeneratorTest {
                 PART_MAP_TO_INSERT_QUERY,
                 PART_MAP_TO_UPDATE_QUERY,
                 PART_MAP_TO_CONTENT_VALUES_WITHOUT_NULL_CHECK); // Without check
-    }
-
-    @NotNull
-    private static Element createElementMock(@NotNull TypeKind typeKind) {
-        final Element objectElement = mock(Element.class);
-        final TypeMirror typeMirror = mock(TypeMirror.class);
-        when(objectElement.asType()).thenReturn(typeMirror);
-        when(typeMirror.getKind()).thenReturn(typeKind);
-        return objectElement;
-    }
-
-    @NotNull
-    private static StorIOSQLiteColumnMeta createColumnMetaMock(
-            @NotNull Element element,
-            @NotNull String columnName,
-            @NotNull String fieldName,
-            boolean isKey,
-            boolean ignoreNull
-    ) {
-        final StorIOSQLiteColumn storIOSQLiteColumn = mock(StorIOSQLiteColumn.class);
-        when(storIOSQLiteColumn.name()).thenReturn(columnName);
-        when(storIOSQLiteColumn.key()).thenReturn(isKey);
-        when(storIOSQLiteColumn.ignoreNull()).thenReturn(ignoreNull);
-
-        //noinspection ConstantConditions
-        return new StorIOSQLiteColumnMeta(
-                null,
-                element,
-                fieldName,
-                null,
-                storIOSQLiteColumn
-        );
     }
 
     private void checkFile(
