@@ -20,6 +20,7 @@ import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
 
+import rx.Scheduler;
 import rx.observers.TestSubscriber;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -31,6 +32,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+import static rx.schedulers.Schedulers.io;
 
 public class DefaultStorIOSQLiteTest {
 
@@ -601,5 +603,35 @@ public class DefaultStorIOSQLiteTest {
         testSubscriber.assertValue(changes2);
         testSubscriber.assertNoErrors();
         testSubscriber.unsubscribe();
+    }
+
+    @Test
+    public void defaultSchedulerReturnsIOSchedulerIfNotSpecified() {
+        StorIOSQLite storIOSQLite = DefaultStorIOSQLite.builder()
+                .sqliteOpenHelper(mock(SQLiteOpenHelper.class))
+                .build();
+
+        assertThat(storIOSQLite.defaultScheduler()).isEqualTo(io());
+    }
+
+    @Test
+    public void defaultSchedulerReturnsSpecifiedScheduler() {
+        Scheduler scheduler = mock(Scheduler.class);
+        StorIOSQLite storIOSQLite = DefaultStorIOSQLite.builder()
+                .sqliteOpenHelper(mock(SQLiteOpenHelper.class))
+                .defaultScheduler(scheduler)
+                .build();
+
+        assertThat(storIOSQLite.defaultScheduler()).isEqualTo(scheduler);
+    }
+
+    @Test
+    public void defaultSchedulerReturnsNullIfSpecifiedSchedulerNull() {
+        StorIOSQLite storIOSQLite = DefaultStorIOSQLite.builder()
+                .sqliteOpenHelper(mock(SQLiteOpenHelper.class))
+                .defaultScheduler(null)
+                .build();
+
+        assertThat(storIOSQLite.defaultScheduler()).isNull();
     }
 }
