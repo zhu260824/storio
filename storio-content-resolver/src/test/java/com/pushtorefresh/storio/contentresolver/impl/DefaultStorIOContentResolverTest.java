@@ -18,11 +18,14 @@ import org.robolectric.annotation.Config;
 
 import java.util.Random;
 
+import rx.Scheduler;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static rx.schedulers.Schedulers.io;
 
 @RunWith(RobolectricGradleTestRunner.class)
 @Config(constants = BuildConfig.class, sdk = 21)
@@ -357,5 +360,35 @@ public class DefaultStorIOContentResolverTest {
                 .build();
 
         assertThat(storIOContentResolver.lowLevel().contentResolver()).isSameAs(contentResolver);
+    }
+
+    @Test
+    public void defaultSchedulerReturnsIOSchedulerIfNotSpecified() {
+        StorIOContentResolver storIOContentResolver = DefaultStorIOContentResolver.builder()
+                .contentResolver(mock(ContentResolver.class))
+                .build();
+
+        assertThat(storIOContentResolver.defaultScheduler()).isEqualTo(io());
+    }
+
+    @Test
+    public void defaultSchedulerReturnsSpecifiedScheduler() {
+        Scheduler scheduler = mock(Scheduler.class);
+        StorIOContentResolver storIOContentResolver = DefaultStorIOContentResolver.builder()
+                .contentResolver(mock(ContentResolver.class))
+                .defaultScheduler(scheduler)
+                .build();
+
+        assertThat(storIOContentResolver.defaultScheduler()).isEqualTo(scheduler);
+    }
+
+    @Test
+    public void defaultSchedulerReturnsNullIfSpecifiedSchedulerNull() {
+        StorIOContentResolver storIOContentResolver = DefaultStorIOContentResolver.builder()
+                .contentResolver(mock(ContentResolver.class))
+                .defaultScheduler(null)
+                .build();
+
+        assertThat(storIOContentResolver.defaultScheduler()).isNull();
     }
 }
