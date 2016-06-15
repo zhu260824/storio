@@ -4,7 +4,6 @@ import android.support.annotation.NonNull;
 
 import com.pushtorefresh.storio.sqlite.BuildConfig;
 import com.pushtorefresh.storio.sqlite.Changes;
-import com.pushtorefresh.storio.sqlite.queries.RawQuery;
 import com.pushtorefresh.storio.test.AbstractEmissionChecker;
 
 import org.junit.Test;
@@ -136,14 +135,7 @@ public class ObserveChangesTest extends BaseTest {
 
         final Subscription subscription = emissionChecker.subscribe();
 
-        storIOSQLite
-                .executeSQL()
-                .withQuery(RawQuery.builder()
-                        .query("delete from " + UserTableMeta.TABLE)
-                        .affectsTables(dummyTable)  // Notify about dummy table changes
-                        .build())
-                .prepare()
-                .executeAsBlocking();
+        storIOSQLite.lowLevel().notifyAboutChanges(Changes.newInstance(dummyTable));  // Notify about dummy table changes
 
         // Should receive changes of dummy table
         emissionChecker.awaitNextExpectedValue();
