@@ -6,6 +6,7 @@ import com.pushtorefresh.storio.operations.PreparedOperation;
 
 import rx.Observable;
 import rx.Subscriber;
+import rx.internal.producers.SingleProducer;
 
 /**
  * Required to avoid problems with ClassLoader when RxJava is not in ClassPath
@@ -39,8 +40,7 @@ public final class OnSubscribeExecuteAsBlocking<Result> implements Observable.On
         final Result result = preparedOperation.executeAsBlocking();
 
         if (!subscriber.isUnsubscribed()) {
-            subscriber.onNext(result);
-            subscriber.onCompleted();
+            subscriber.setProducer(new SingleProducer<Result>(subscriber, result));
         }
     }
 }

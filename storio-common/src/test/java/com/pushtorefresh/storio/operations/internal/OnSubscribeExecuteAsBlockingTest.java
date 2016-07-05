@@ -9,13 +9,16 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import rx.Observable;
+import rx.Observable.OnSubscribe;
 import rx.Subscriber;
+import rx.observers.TestSubscriber;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static rx.schedulers.Schedulers.io;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(Subscriber.class)
@@ -37,6 +40,7 @@ public class OnSubscribeExecuteAsBlockingTest {
                 .first();
 
         verify(preparedOperation, times(1)).executeAsBlocking();
+        //noinspection CheckResult
         verify(preparedOperation, times(0)).asRxObservable();
 
         assertThat(actualResult).isEqualTo(expectedResult);
@@ -85,5 +89,26 @@ public class OnSubscribeExecuteAsBlockingTest {
         // executeAsBlocking() must be called (for example for Put and Delete operations)
         // But we should think about skipping call to executeAsBlocking() for Get Operation in same case
         verify(preparedOperation).executeAsBlocking();
+    }
+
+    @Test
+    public void shouldHonorBackpressureWithMultipleSubscribeOn() {
+        TestSubscriber<String> testSubscriber = TestSubscriber.create();
+
+        //noinspection unchecked
+        PreparedOperation<String> preparedOperation = mock(PreparedOperation.class);
+        when(preparedOperation.executeAsBlocking()).thenReturn("b");
+
+        OnSubscribe<String> onSubscribe = OnSubscribeExecuteAsBlocking.newInstance(preparedOperation);
+
+        Observable.just("a")
+                .startWith(Observable.create(onSubscribe))
+                .subscribeOn(io())
+                .subscribeOn(io())   // duplicate
+                .subscribe(testSubscriber);
+
+        testSubscriber.awaitTerminalEvent();
+        testSubscriber.assertNoErrors();
+        testSubscriber.assertValues("b", "a");
     }
 }
